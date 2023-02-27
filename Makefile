@@ -1,10 +1,19 @@
 OUTPUT=softversion
+GOCMD=go
+GOCLEAN=$(GOCMD) clean
+GOMOD=$(GOCMD) mod
+all: get_deps build
+
+get_deps:
+	@rm -rf vendor/
+	@echo "--> Running go mod vendor"
+	$(GOMOD) download
+	$(GOMOD) vendor
 
 GITTAG=`git describe --tags`
 GITHASH=`git rev-parse --short HEAD`
-BUILD_TIME=`date +%FT%T%z`
 
-LDFLAGS=-ldflags "-X main.GitTag=${GITTAG} -X main.BuildTime=${BUILD_TIME} -X main.GitHash=${GITHASH}"
+LDFLAGS=-ldflags "-X main.GitTag=${GITTAG} -X main.GitHash=${GITHASH}"
 
-all:
-	go build ${LDFLAGS} -o ${OUTPUT} main.go
+build:
+	go build ${LDFLAGS} -o ${OUTPUT}
