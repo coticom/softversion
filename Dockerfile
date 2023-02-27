@@ -1,26 +1,28 @@
-FROM golang:1.15.5-alpine3.12
-
+FROM golang:1.18.10-alpine3.17 as builder
 # Set up dependencies
-ENV PACKAGES go make git libc-dev bash
-ENV BINARY_NAME softversion
-ENV GOPATH       /root/go
-ENV REPO_PATH    $GOPATH/src/gitlab.bianjie.ai/rainbow/rainbow-server
-ENV PATH         $GOPATH/bin:$PATH
-ENV TZ           Asia/Shanghai
+ENV PACKAGES make git libc-dev bash gcc
 ENV GO111MODULE  on
+ENV BINARY_NAME softversion
 
-ARG GOPROXY=https://goproxy.cn,direct
+ARG GITUSER=bamboo
+ARG GITPASS=FS_Q5LmxwExwK6hFN9Fs
+ARG GOPRIVATE=gitlab.bianjie.ai
+ARG GOPROXY=http://192.168.0.60:8081/repository/go-bianjie/,http://nexus.bianjie.ai/repository/golang-group,https://goproxy.cn,direct
+ARG APKPROXY=http://mirrors.ustc.edu.cn/alpine
 
-RUN mkdir -p $GOPATH/bin $REPO_PATH
 
-COPY . $REPO_PATH
-WORKDIR $REPO_PATH
-
-VOLUME $REPO_PATH/logs
+COPY  . $GOPATH/src
+WORKDIR $GOPATH/src
 
 # Install minimum necessary dependencies, build binary
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && apk add --no-cache $PACKAGES tzdata ca-certificates && \
-    cd $REPO_PATH && make all
+RUN sed -i "s+http://dl-cdn.alpinelinux.org/alpine+${APKPROXY}+g" /etc/apk/repositories && \
+    apk add --no-cache $PACKAGES && \
+    git config --global url."https://${GITUSER}:${GITPASS}@gitlab.bianjie.ai".insteadOf "https://gitlab.bianjie.ai" && make all
+
+FROM alpine:3.17
+ENV TZ           Asia/Shanghai
+WORKDIR /root/
+COPY --from=builder /go/src/softversion /usr/local/bin
+RUN apk add --no-cache tzdata && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 CMD $BINARY_NAME
-
