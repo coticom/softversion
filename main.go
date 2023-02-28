@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,6 +11,7 @@ var (
 )
 
 func main() {
+	fmt.Println("hash test")
 	r := gin.Default()
 
 	r.GET("/version", func(c *gin.Context) {
