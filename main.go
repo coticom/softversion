@@ -11,7 +11,7 @@ var (
 )
 
 func main() {
-	fmt.Println("hash test")
+	fmt.Println("tag test")
 	r := gin.Default()
 
 	r.GET("/version", func(c *gin.Context) {
