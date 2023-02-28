@@ -20,6 +20,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 
 FROM alpine:3.17
 ENV TZ           Asia/Shanghai
+ENV BINARY_NAME softversion
 WORKDIR /root/
 COPY --from=builder /go/src/softversion /usr/local/bin
 RUN apk add --no-cache tzdata && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
